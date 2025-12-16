@@ -19,25 +19,18 @@ class ApiClient {
   String get fullUrl {
     // Start with the host
     String url = EndpointInfo.apiHost;
-
     // Remove trailing slash from host if present
-    if (url.endsWith('/')) {
-      url = url.substring(0, url.length - 1);
-    }
+    if (url.endsWith('/')) url = url.substring(0, url.length - 1);
     url += '/${query.pathSegment}';
-      
-    // Add query parameters if any exist
-    if (queryParameters.isNotEmpty) {
-      url += '?';
-      List<String> queryPairs = [];
-      queryParameters.forEach((key, value) {
-        queryPairs.add(
-          '${Uri.encodeComponent(key)}=${Uri.encodeComponent(value.toString())}',
-        );
-      });
-      url += queryPairs.join('&');
-    }
-
+    if (queryParameters.isEmpty) return url;
+    url += '?';
+    List<String> queryPairs = [];
+    queryParameters.forEach((key, value) {
+      queryPairs.add(
+        '${Uri.encodeComponent(key)}=${Uri.encodeComponent(value.toString())}',
+      );
+    });
+    url += queryPairs.join('&');
     return url;
   }
 
@@ -49,15 +42,13 @@ class ApiClient {
     try {
       final request = await client.getUrl(uri);
       final response = await request.close();
-
-      if (response.statusCode == 200) {
-        final responseBody = await response.transform(utf8.decoder).join();
-        return json.decode(responseBody) as Map<String, dynamic>;
-      } else {
+      if (response.statusCode != 200) {
         throw HttpException(
           'HTTP ${response.statusCode}: ${response.reasonPhrase}',
         );
       }
+      final responseBody = await response.transform(utf8.decoder).join();
+      return json.decode(responseBody) as Map<String, dynamic>;
     } finally {
       client.close();
     }
@@ -67,38 +58,27 @@ class ApiClient {
   ApiClient copyWith({
     PathParameter? query,
     Map<String, dynamic>? queryParameters,
-  }) {
-    return ApiClient(
-      query: query ?? this.query,
-      queryParameters: queryParameters ?? this.queryParameters,
-    );
-  }
+  }) => ApiClient(
+    query: query ?? this.query,
+    queryParameters: queryParameters ?? this.queryParameters,
+  );
 
   /// Adds a path parameter to the existing list
-  ApiClient addPath(PathParameter query) {
-    return copyWith(query: query);
-  }
+  ApiClient addPath(PathParameter query) => copyWith(query: query);
 
   /// Adds query parameters to the existing map
-  ApiClient addQuery(Map<String, dynamic> newQueryParams) {
-    return copyWith(queryParameters: {...queryParameters, ...newQueryParams});
-  }
+  ApiClient addQuery(Map<String, dynamic> newQueryParams) =>
+      copyWith(queryParameters: {...queryParameters, ...newQueryParams});
 
   /// Sets a single query parameter
-  ApiClient setQuery(String key, dynamic value) {
-    return addQuery({key: value});
-  }
+  ApiClient setQuery(String key, dynamic value) => addQuery({key: value});
 
   @override
-  String toString() {
-    return 'ApiClient(fullUrl: $fullUrl)';
-  }
+  String toString() => 'ApiClient(fullUrl: $fullUrl)';
 }
 
 /// Extension methods for easier URL building
 extension ApiClientExtensions on ApiClient {
   /// Convenient method to add multiple path segments at once
-  ApiClient path(PathParameter path) {
-    return copyWith(query: path);
-  }
+  ApiClient path(PathParameter path) => copyWith(query: path);
 }

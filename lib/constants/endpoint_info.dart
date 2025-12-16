@@ -15,9 +15,7 @@ abstract class PathParameter {
   const PathParameter(this.type, [this.id]);
 
   String get pathSegment {
-    if (id != null) {
-      return '${type.pathName}/$id';
-    }
+    if (id != null) return '${type.pathName}/$id';
     return type.pathName;
   }
 }

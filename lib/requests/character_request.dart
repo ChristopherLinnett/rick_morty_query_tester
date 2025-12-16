@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:rick_morty_query_tester/constants/endpoint_info.dart';
-import 'package:rick_morty_query_tester/core/http.dart';
+import 'package:rick_morty_query_tester/core/api_client.dart';
 import 'package:rick_morty_query_tester/models/character.dart';
 import 'package:typed_cached_query/typed_cached_query.dart';
 
